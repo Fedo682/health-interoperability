@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}{{ patient.name }} — GP Record{% endblock %}
+{% block content %}
+
+<!-- Breadcrumb -->
+<div style="display:flex; align-items:center; gap:6px; font-size:0.8rem; color:var(--color-text-muted); margin-bottom:20px;">
+  <a href="/" style="color:var(--color-primary); text-decoration:none; font-weight:500;">Patients</a>
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+  <span>{{ patient.name }}</span>
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+  <span>GP Record</span>
+</div>
+
+<!-- Patient header -->
+<div class="card" style="background:linear-gradient(135deg,#1E3A8A,#1E40AF); border:none; color:white; margin-bottom:20px;">
+  <div style="display:flex; align-items:center; gap:18px;">
+    <div style="width:56px; height:56px; border-radius:14px; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; font-size:1.3rem; font-weight:800; flex-shrink:0; letter-spacing:-0.02em;">
+      {{ patient.name.split()[0][0] }}{{ patient.name.split()[-1][0] }}
+    </div>
+    <div>
+      <div style="font-size:1.25rem; font-weight:700; letter-spacing:-0.02em;">{{ patient.name }}</div>
+      <div style="font-size:0.82rem; opacity:0.75; margin-top:2px;">Patient ID: <code style="background:rgba(255,255,255,0.15); color:white; padding:1px 6px; border-radius:4px;">{{ "%06d"|format(patient.id) }}</code></div>
+    </div>
+    <div style="margin-left:auto; text-align:right;">
+      <div style="font-size:0.72rem; opacity:0.7; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:4px;">Source System</div>
+      <div style="font-size:0.875rem; font-weight:600; background:rgba(255,255,255,0.15); padding:4px 12px; border-radius:6px;">Al-Nour GP Clinic</div>
+    </div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <!-- GP Record -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:#EFF6FF;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1E40AF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+        </svg>
+      </div>
+      <div>
+        <div class="card-title">GP Clinic Record</div>
+        <div class="card-subtitle">Stored as SQLite flat record</div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <tbody>
+          <tr>
+            <td style="font-weight:600; color:var(--color-text-muted); font-size:0.8rem; width:140px; white-space:nowrap;">Patient ID</td>
+            <td><code>{{ "%06d"|format(patient.id) }}</code></td>
+          </tr>
+          <tr>
+            <td style="font-weight:600; color:var(--color-text-muted); font-size:0.8rem;">Full Name</td>
+            <td style="font-weight:600;">{{ patient.name }}</td>
+          </tr>
+          <tr>
+            <td style="font-weight:600; color:var(--color-text-muted); font-size:0.8rem;">Date of Birth</td>
+            <td>{{ patient.dob }}</td>
+          </tr>
+          <tr>
+            <td style="font-weight:600; color:var(--color-text-muted); font-size:0.8rem;">Gender</td>
+            <td>{{ patient.gender }}</td>
+          </tr>
+          <tr>
+            <td style="font-weight:600; color:var(--color-text-muted); font-size:0.8rem;">Local Code</td>
+            <td>
+              <code style="background:#FEF3C7; color:#92400E;">{{ patient.local_diagnosis_code }}</code>
+            </td>
+          </tr>
+          <tr>
+            <td style="font-weight:600; color:var(--color-text-muted); font-size:0.8rem;">Diagnosis</td>
+            <td>{{ patient.diagnosis_text }}</td>
+          </tr>
+          <tr>
+            <td style="font-weight:600; color:var(--color-text-muted); font-size:0.8rem;">Referred To</td>
+            <td style="font-weight:600; color:var(--color-primary);">{{ patient.referred_to }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- What happens next -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:#ECFDF5;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      </div>
+      <div>
+        <div class="card-title">Journey Overview</div>
+        <div class="card-subtitle">5 interoperability channels</div>
+      </div>
+    </div>
+
+    {% set steps = [
+      ("#1E40AF","1","GP → Hospital ED","HL7 v2 ADT^A01","ICD-10"),
+      ("#7C3AED","2","Hospital ED → Laboratory","HL7 v2 ORM^O01","LOINC"),
+      ("#0D9488","3","Laboratory → Hospital ED","HL7 v2 ORU^R01","SNOMED CT"),
+      ("#EA580C","4","Hospital ED → Radiology","DICOM Metadata","SNOMED CT"),
+      ("#059669","5","Hospital ED → Pharmacy","FHIR R4 MedRequest","RxNorm"),
+    ] %}
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      {% for color, num, label, std, term in steps %}
+      <div style="display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:8px; background:#F8FAFC; border:1px solid var(--color-border);">
+        <div style="width:26px; height:26px; border-radius:50%; background:{{ color }}; color:white; font-size:0.75rem; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0;">{{ num }}</div>
+        <div style="flex:1; min-width:0;">
+          <div style="font-weight:600; font-size:0.82rem; color:var(--color-text);">{{ label }}</div>
+          <div style="font-size:0.72rem; color:var(--color-text-muted); margin-top:1px;">{{ std }} &bull; {{ term }}</div>
+        </div>
+        <a href="/channel/{{ num }}/{{ patient.id }}" style="color:{{ color }}; text-decoration:none; font-size:0.8rem; font-weight:600; flex-shrink:0; cursor:pointer;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Alert & actions -->
+<div class="alert-info" style="margin-bottom:20px;">
+  <strong>Channel 1 transformation:</strong> The GP local code <code style="background:#DBEAFE;color:#1E40AF;">{{ patient.local_diagnosis_code }}</code>
+  will be mapped to an ICD-10 code and the flat record converted to an HL7 v2 ADT^A01 message for the Hospital ED.
+</div>
+
+<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:32px;">
+  <a href="/channel/1/{{ patient.id }}" class="btn btn-primary" style="cursor:pointer;">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    Send to Hospital ED — Channel 1
+  </a>
+  <a href="/summary/{{ patient.id }}" class="btn btn-success" style="cursor:pointer;">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+    View Full Summary
+  </a>
+  <a href="/" class="btn btn-ghost" style="cursor:pointer;">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    Back to Patients
+  </a>
+</div>
+
+{% endblock %}

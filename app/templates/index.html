@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Patients — Health Interoperability Demo{% endblock %}
+{% block content %}
+
+<!-- Scenario banner -->
+<div class="card" style="background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%); border: none; color: white;">
+  <div style="display:flex; align-items:flex-start; gap:16px;">
+    <div style="background:rgba(255,255,255,0.15); border-radius:12px; padding:12px; flex-shrink:0;">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+      </svg>
+    </div>
+    <div style="flex:1;">
+      <h2 style="font-size:1.15rem; font-weight:700; color:white; margin-bottom:6px;">Cardiac Emergency Patient Journey</h2>
+      <p style="font-size:0.875rem; opacity:0.85; line-height:1.7; max-width:720px;">
+        Each patient presents at a <strong>GP Clinic</strong> with chest pain and is referred through four connected systems.
+        At every handoff, data is transformed across different standards — demonstrating structural, syntactic, and semantic interoperability in action.
+      </p>
+      <div class="tag-row" style="margin-top:14px;">
+        <span class="badge badge-hl7">HL7 v2 ADT</span>
+        <span class="badge badge-hl7">HL7 v2 ORM</span>
+        <span class="badge badge-hl7">HL7 v2 ORU</span>
+        <span class="badge badge-dicom">DICOM</span>
+        <span class="badge badge-fhir">FHIR R4</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Pipeline -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-icon" style="background:#EFF6FF;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1E40AF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+      </svg>
+    </div>
+    <div>
+      <div class="card-title">Interoperability Pipeline</div>
+      <div class="card-subtitle">Data flow between 5 healthcare providers</div>
+    </div>
+  </div>
+
+  <div style="display:flex; align-items:stretch; gap:0; overflow-x:auto; padding-bottom:4px;">
+    {% set pipeline = [
+      ("#1E40AF", "GP Clinic", "ICD-10", "Ch 1", "#3B82F6"),
+      ("#7C3AED", "Hospital ED", "LOINC", "Ch 2", "#8B5CF6"),
+      ("#0D9488", "Laboratory", "SNOMED CT", "Ch 3", "#14B8A6"),
+      ("#7C3AED", "Hospital ED", "SNOMED CT", "Ch 4", "#8B5CF6"),
+      ("#EA580C", "Radiology", "RxNorm", "Ch 5", "#F97316"),
+      ("#7C3AED", "Hospital ED", "", "", "#8B5CF6"),
+      ("#059669", "Pharmacy", "", "", "#10B981"),
+    ] %}
+    {% for color, name, term, ch, light in pipeline %}
+      <div style="display:flex; flex-direction:column; align-items:center; gap:4px; min-width:0;">
+        <div style="background:{{ color }}; color:white; padding:10px 16px; border-radius:10px; font-weight:600; font-size:0.8rem; white-space:nowrap; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+          {{ name }}
+        </div>
+        {% if term %}
+          <span style="font-size:0.68rem; color:var(--color-text-muted); font-weight:500;">{{ term }}</span>
+        {% else %}
+          <span style="font-size:0.68rem; color:transparent;">—</span>
+        {% endif %}
+      </div>
+      {% if not loop.last %}
+        <div style="display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding-top:10px; min-width:32px;">
+          <svg width="20" height="16" viewBox="0 0 20 16" fill="none">
+            <path d="M0 8h16M10 2l8 6-8 6" stroke="{{ light if ch else '#CBD5E1' }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          {% if ch %}
+            <span style="font-size:0.65rem; color:var(--color-text-muted); font-weight:600; margin-top:2px;">{{ ch }}</span>
+          {% endif %}
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Patient list -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-icon" style="background:#EDE9FE;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+    </div>
+    <div>
+      <div class="card-title">Patient Records</div>
+      <div class="card-subtitle">Select a patient to begin the interoperability journey</div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Patient Name</th>
+          <th>Date of Birth</th>
+          <th>GP Diagnosis Code</th>
+          <th>Diagnosis</th>
+          <th>Referred To</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in patients %}
+        <tr>
+          <td style="color:var(--color-text-muted); font-size:0.8rem;">{{ "%02d"|format(p['id']) }}</td>
+          <td>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <div style="width:32px; height:32px; border-radius:50%; background:{{ ['#DBEAFE','#EDE9FE','#D1FAE5','#FEF3C7','#FFE4E6','#E0F2FE'][loop.index0 % 6] }}; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.78rem; color:{{ ['#1E40AF','#5B21B6','#065F46','#92400E','#9F1239','#0369A1'][loop.index0 % 6] }}; flex-shrink:0;">
+                {{ p['name'].split()[0][0] }}{{ p['name'].split()[-1][0] }}
+              </div>
+              <span style="font-weight:600;">{{ p['name'] }}</span>
+            </div>
+          </td>
+          <td style="color:var(--color-text-muted);">{{ p['dob'] }}</td>
+          <td>
+            <code>{{ p['local_diagnosis_code'] }}</code>
+          </td>
+          <td style="max-width:220px; color:var(--color-text-muted); font-size:0.85rem;">{{ p['diagnosis_text'] }}</td>
+          <td>
+            <span style="font-size:0.82rem; font-weight:500; color:var(--color-primary);">{{ p['referred_to'] }}</span>
+          </td>
+          <td>
+            <a href="/patient/{{ p['id'] }}" class="btn btn-primary btn-sm" style="cursor:pointer;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              Start Journey
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

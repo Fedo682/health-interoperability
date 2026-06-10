@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+{% block title %}Full Summary — {{ gp.name }}{% endblock %}
+{% block content %}
+
+<!-- Breadcrumb -->
+<div style="display:flex; align-items:center; gap:6px; font-size:0.8rem; color:var(--color-text-muted); margin-bottom:20px;">
+  <a href="/" style="color:var(--color-primary); text-decoration:none; font-weight:500;">Patients</a>
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+  <a href="/patient/{{ pid }}" style="color:var(--color-primary); text-decoration:none; font-weight:500;">{{ gp.name }}</a>
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+  <span>Full Summary</span>
+</div>
+
+<!-- Header -->
+<div class="card" style="background:linear-gradient(135deg,#065F46,#059669); border:none; color:white; margin-bottom:20px;">
+  <div style="display:flex; align-items:center; gap:18px;">
+    <div style="width:56px; height:56px; border-radius:14px; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; font-size:1.3rem; font-weight:800; flex-shrink:0;">
+      {{ gp.name.split()[0][0] }}{{ gp.name.split()[-1][0] }}
+    </div>
+    <div>
+      <div style="font-size:1.25rem; font-weight:700; letter-spacing:-0.02em;">{{ gp.name }}</div>
+      <div style="font-size:0.82rem; opacity:0.75; margin-top:2px;">Complete patient journey across all 5 healthcare providers</div>
+    </div>
+    <div style="margin-left:auto; display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;">
+      <div style="background:rgba(255,255,255,0.15); border-radius:8px; padding:8px 14px; text-align:center;">
+        <div style="font-size:1.4rem; font-weight:800; line-height:1;">5</div>
+        <div style="font-size:0.68rem; opacity:0.8; margin-top:2px;">Providers</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.15); border-radius:8px; padding:8px 14px; text-align:center;">
+        <div style="font-size:1.4rem; font-weight:800; line-height:1;">5</div>
+        <div style="font-size:0.68rem; opacity:0.8; margin-top:2px;">Channels</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.15); border-radius:8px; padding:8px 14px; text-align:center;">
+        <div style="font-size:1.4rem; font-weight:800; line-height:1;">4</div>
+        <div style="font-size:0.68rem; opacity:0.8; margin-top:2px;">Standards</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Timeline table -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-icon" style="background:#EFF6FF;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1E40AF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/>
+        <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/>
+        <line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/>
+        <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/>
+      </svg>
+    </div>
+    <div>
+      <div class="card-title">Data Exchange Timeline</div>
+      <div class="card-subtitle">Source → destination at each interoperability point</div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Step</th>
+          <th>From</th>
+          <th>To</th>
+          <th>Standard</th>
+          <th>Terminology</th>
+          <th>Key Data</th>
+          <th>Demo</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><div style="width:26px;height:26px;border-radius:50%;background:#1E40AF;color:white;font-size:0.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;">1</div></td>
+          <td style="font-weight:600;">GP Clinic</td>
+          <td style="font-weight:600;">Hospital ED</td>
+          <td><span class="badge badge-hl7">HL7 v2 ADT^A01</span></td>
+          <td><code>ICD-10</code></td>
+          <td style="font-size:0.82rem;color:var(--color-text-muted);">
+            <code style="background:#FEF3C7;color:#92400E;">{{ gp.local_diagnosis_code }}</code>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin:0 4px;vertical-align:middle;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            <code>{{ ed.icd10_code }}</code>
+          </td>
+          <td><a href="/channel/1/{{ pid }}" class="btn btn-primary btn-sm" style="cursor:pointer;">View</a></td>
+        </tr>
+        <tr>
+          <td><div style="width:26px;height:26px;border-radius:50%;background:#7C3AED;color:white;font-size:0.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;">2</div></td>
+          <td style="font-weight:600;">Hospital ED</td>
+          <td style="font-weight:600;">Laboratory</td>
+          <td><span class="badge badge-hl7">HL7 v2 ORM^O01</span></td>
+          <td><code>LOINC</code></td>
+          <td style="font-size:0.82rem;color:var(--color-text-muted);"><code>{{ lab.loinc_code }}</code> — {{ lab.test_name }}</td>
+          <td><a href="/channel/2/{{ pid }}" class="btn btn-primary btn-sm" style="cursor:pointer;">View</a></td>
+        </tr>
+        <tr>
+          <td><div style="width:26px;height:26px;border-radius:50%;background:#0D9488;color:white;font-size:0.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;">3</div></td>
+          <td style="font-weight:600;">Laboratory</td>
+          <td style="font-weight:600;">Hospital ED</td>
+          <td><span class="badge badge-hl7">HL7 v2 ORU^R01</span></td>
+          <td><code>SNOMED CT</code></td>
+          <td style="font-size:0.82rem;color:var(--color-text-muted);"><strong>{{ lab.result_value }} {{ lab.unit }}</strong> (ref: {{ lab.reference_range }})</td>
+          <td><a href="/channel/3/{{ pid }}" class="btn btn-primary btn-sm" style="cursor:pointer;">View</a></td>
+        </tr>
+        <tr>
+          <td><div style="width:26px;height:26px;border-radius:50%;background:#EA580C;color:white;font-size:0.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;">4</div></td>
+          <td style="font-weight:600;">Hospital ED</td>
+          <td style="font-weight:600;">Radiology</td>
+          <td><span class="badge badge-dicom">DICOM Metadata</span></td>
+          <td><code>SNOMED CT</code></td>
+          <td style="font-size:0.82rem;color:var(--color-text-muted);"><code>{{ rad.modality }}</code> — {{ rad.procedure_name }}</td>
+          <td><a href="/channel/4/{{ pid }}" class="btn btn-primary btn-sm" style="cursor:pointer;">View</a></td>
+        </tr>
+        <tr>
+          <td><div style="width:26px;height:26px;border-radius:50%;background:#059669;color:white;font-size:0.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;">5</div></td>
+          <td style="font-weight:600;">Hospital ED</td>
+          <td style="font-weight:600;">Pharmacy</td>
+          <td><span class="badge badge-fhir">FHIR R4</span></td>
+          <td><code>RxNorm</code></td>
+          <td style="font-size:0.82rem;color:var(--color-text-muted);"><code>{{ pharm.rxnorm_code }}</code> — <strong>{{ pharm.drug_name }} {{ pharm.dose }}</strong></td>
+          <td><a href="/channel/5/{{ pid }}" class="btn btn-primary btn-sm" style="cursor:pointer;">View</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Provider records grid -->
+<div class="grid-2">
+
+  <div class="card" style="border-top:3px solid #1E40AF;">
+    <div class="card-header">
+      <div class="card-icon" style="background:#EFF6FF;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1E40AF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      <div>
+        <div class="card-title">GP Clinic</div>
+        <div class="card-subtitle">Al-Nour GP Clinic · SQLite</div>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tbody>
+          <tr><td style="color:var(--color-text-muted);font-size:0.8rem;width:120px;">Name</td><td style="font-weight:600;">{{ gp.name }}</td></tr>
+          <tr><td style="color:var(--color-text-muted);font-size:0.8rem;">DOB</td><td>{{ gp.dob }}</td></tr>
+          <tr><td style="color:var(--color-text-muted);font-size:0.8rem;">Local Code</td><td><code style="background:#FEF3C7;color:#92400E;">{{ gp.local_diagnosis_code }}</code></td></tr>
+          <tr><td style="color:var(--color-text-muted);font-size:0.8rem;">Diagnosis</td><td>{{ gp.diagnosis_text }}</td></tr>
+          <tr><td style="color:var(--color-text-muted);font-size:0.8rem;">Referred To</td><td style="font-weight:600;color:#1E40AF;">{{ gp.referred_to }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" style="border-top:3px solid #7C3AED;">
+    <div class="card-header">
+      <div class="card-icon" style="background:#EDE9FE;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      </div>
+      <div>
+        <div class="card-title">Hospital ED</div>
+        <div class="card-subtitle">City Hospital · SQLite</div>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tbody>
+          <tr><td style="color:var(--color-text-muted);font-size:0.8rem;width:120px;">Name</td><td style="font-weight:600;">{{ ed.patient_name }}</td></tr>
+          <tr><td style="color:var(--color-text-muted);font-size:0.8rem;">ICD-10</td><td><code>{{ ed.icd10_code }}</code></td></tr>
+          <tr><td style="color:var(--color-text-muted);font-size:0.8rem;">Diagnosis</td><td>{{ ed.diagnosis_text }}</td></tr>
+          <tr><td style="color:var(--color-text-muted);font-size:0.8rem;">Physician</td><td>{{ ed.attending_physician }}</td></tr>
+          <tr><td style="color:var(--color-text-muted);font-size:0.8rem;">Admitted</td><td>{{ ed.admission_date }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" style="border-top:3px solid #0D9488;">
+    <div class="card-header">
+      <div class="card-icon" style="background:#CCFBF1;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0D9488" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/></svg>
+      </div>
+      <div>
+        <div class="card-title">Laboratory</div>
+        <div class="card-subtitle">Central Lab · SQLite</div>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tbody>
+          <tr><td style="color:var(--color-text-muted);font-size:0.8rem;width:120px;">Name</td><td style="font-weight:600;">{{ lab.patient_name }}</td></tr>
+          <tr><td style="color:var(--color-text-muted);font-size:0.8rem;">LOINC</td><td><code>{{ lab.loinc_code }}</code></td></tr>
+          <tr><td style="color:var(--color-text-muted);font-size:0.8rem;">Test</td><td>{{ lab.test_name }}</td></tr>
+          <tr><td style="color:var(--color-text-muted);font-size:0.8rem;">Result</td><td><strong style="color:{% if lab.result_value|float > 0.04 %}#DC2626{% else %}#059669{% endif %};">{{ lab.result_value }} {{ lab.unit }}</strong></td></tr>
+          <tr><td style="color:var(--color-text-muted);font-size:0.8rem;">Reference</td><td style="color:var(--color-text-muted);">{{ lab.reference_range }}</td></tr>
+          <tr><td style="color:var(--color-text-muted);font-size:0.8rem;">Status</td><td><span class="badge badge-fhir">{{ lab.status }}</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" style="border-top:3px solid #EA580C;">
+    <div class="card-header">
+      <div class="card-icon" style="background:#FFF7ED;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EA580C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      </div>
+      <div>
+        <div class="card-title">Radiology</div>
+        <div class="card-subtitle">Imaging Centre · SQLite</div>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tbody>
+          <tr><td style="color:var(--color-text-muted);font-size:0.8rem;width:120px;">Name</td><td style="font-weight:600;">{{ rad.patient_name }}</td></tr>
+          <tr><td style="color:var(--color-text-muted);font-size:0.8rem;">Modality</td><td><code>{{ rad.modality }}</code></td></tr>
+          <tr><td style="color:var(--color-text-muted);font-size:0.8rem;">SNOMED</td><td><code>{{ rad.snomed_procedure_code }}</code></td></tr>
+          <tr><td style="color:var(--color-text-muted);font-size:0.8rem;">Procedure</td><td>{{ rad.procedure_name }}</td></tr>
+          <tr><td style="color:var(--color-text-muted);font-size:0.8rem;">Report</td><td style="font-size:0.8rem;color:var(--color-text-muted);line-height:1.5;">{{ rad.report_text }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Pharmacy full width -->
+<div class="card" style="border-top:3px solid #059669;">
+  <div class="card-header">
+    <div class="card-icon" style="background:#ECFDF5;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+    </div>
+    <div>
+      <div class="card-title">Pharmacy — Medication Order</div>
+      <div class="card-subtitle">City Pharmacy · FHIR R4 MedicationRequest · RxNorm</div>
+    </div>
+  </div>
+  <div style="display:flex; gap:20px; flex-wrap:wrap;">
+    {% set med_fields = [
+      ("Patient", pharm.patient_name),
+      ("RxNorm Code", pharm.rxnorm_code),
+      ("Drug", pharm.drug_name ~ " " ~ pharm.dose),
+      ("Frequency", pharm.frequency),
+      ("Prescriber", pharm.prescriber),
+      ("Order Date", pharm.order_date),
+    ] %}
+    {% for label, val in med_fields %}
+    <div style="background:#F8FAFC; border:1px solid var(--color-border); border-radius:8px; padding:12px 16px; min-width:160px; flex:1;">
+      <div style="font-size:0.7rem; color:var(--color-text-muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:4px;">{{ label }}</div>
+      <div style="font-weight:600; font-size:0.875rem;">
+        {% if label == "RxNorm Code" %}<code>{{ val }}</code>
+        {% elif label == "Drug" %}<span style="color:#059669;">{{ val }}</span>
+        {% else %}{{ val }}{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Actions -->
+<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:32px;">
+  <a href="/patient/{{ pid }}" class="btn btn-ghost" style="cursor:pointer;">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    Back to Patient
+  </a>
+  <a href="/" class="btn btn-primary" style="cursor:pointer;">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    All Patients
+  </a>
+</div>
+
+{% endblock %}
