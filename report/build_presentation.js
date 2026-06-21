@@ -4,7 +4,7 @@ const path = require("path");
 const pres = new pptxgen();
 pres.layout = "LAYOUT_WIDE"; // 13.3" x 7.5"
 pres.title = "COMP3342 Health Interoperability";
-pres.author = "Group [GROUP NUMBER]";
+pres.author = "Group 8";
 
 const PHOTOS = path.join(__dirname, "member_photos");
 
@@ -167,7 +167,7 @@ function channelBadge(slide, x, y, num, label, color) {
     });
   });
 
-  s.addText("Group [GROUP NUMBER]  •  June 17, 2026", {
+  s.addText("Group 8  •  June 17, 2026", {
     x: 0.55, y: H - 0.55, w: 6, h: 0.3,
     fontSize: 10, color: "64748B", fontFace: "Calibri", margin: 0
   });
@@ -825,7 +825,7 @@ channelSlide(5,
   s.addShape(pres.shapes.RECTANGLE, {
     x: 0, y: H - 0.35, w: W, h: 0.35, fill: { color: "1E293B" }, line: { color: "1E293B" }
   });
-  s.addText("COMP3342 — Health Systems Interoperability & Integration  •  Group [GROUP NUMBER]  •  June 17, 2026", {
+  s.addText("COMP3342 — Health Systems Interoperability & Integration  •  Group 8  •  June 17, 2026", {
     x: 0.4, y: H - 0.32, w: W - 0.8, h: 0.28,
     fontSize: 9, color: "475569", fontFace: "Calibri", margin: 0
   });
