@@ -47,6 +47,7 @@
         <div class="card-subtitle">From the Laboratory (Channel 3)</div>
       </div>
     </div>
+    {% if lab and lab.status == "FINAL" %}
     <div class="table-wrap">
       <table>
         <tbody>
@@ -57,6 +58,11 @@
         </tbody>
       </table>
     </div>
+    {% elif lab %}
+    <div class="alert-info">{{ lab.test_name }} ordered (LOINC {{ lab.loinc_code }}) — awaiting result. <a href="/channel/3/{{ pid }}">Receive result — Channel 3</a></div>
+    {% else %}
+    <div class="alert-info">Not ordered. <a href="/channel/2/{{ pid }}">Order Lab — Channel 2</a></div>
+    {% endif %}
   </div>
 
   <!-- Radiology report -->
@@ -70,6 +76,7 @@
         <div class="card-subtitle">From Radiology (Channel 6)</div>
       </div>
     </div>
+    {% if rad and rad.status == "REPORTED" %}
     <div class="table-wrap">
       <table>
         <tbody>
@@ -79,6 +86,11 @@
         </tbody>
       </table>
     </div>
+    {% elif rad %}
+    <div class="alert-info">{{ rad.procedure_name }} requested ({{ rad.modality }}) — awaiting report. <a href="/channel/6/{{ pid }}">Receive report — Channel 6</a></div>
+    {% else %}
+    <div class="alert-info">Not requested. <a href="/channel/4/{{ pid }}">Order Radiology — Channel 4</a></div>
+    {% endif %}
   </div>
 </div>
 

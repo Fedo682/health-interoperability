@@ -1,67 +1,41 @@
+"""Seeds the 5 provider databases + an audit log.
+
+Unlike the old version, only the GP Clinic record is populated upfront.
+Hospital ED / Laboratory / Radiology / Pharmacy tables are created EMPTY:
+those rows are produced on demand as the patient is walked through the
+interoperability channels in app.py (ensure_admission, ensure_lab_order,
+fill_lab_result, etc.), so the demo proves the system actually does the
+work rather than displaying pre-baked answers.
+
+diagnosis_catalog.py is the single source of clinical truth: each seeded
+patient references a profile_key, and every downstream record is derived
+from that profile when its step actually fires.
+"""
 import sqlite3
 import os
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "app"))
+import diagnosis_catalog
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 
+# (name, dob, gender, profile_key) — profile_key must exist in DIAGNOSIS_CATALOG
 PATIENTS = [
-    ("Fadi Halaweh",    "1985-03-12", "M"),
-    ("Ghassan Halaweh", "1978-07-24", "M"),
-    ("Omar Taweel",     "1990-11-05", "M"),
-    ("Tariq Khalil",    "1965-01-30", "M"),
-    ("Omar Diebas",     "1972-09-18", "M"),
-    ("Qais Alqrem",     "1988-04-22", "M"),
+    ("Fadi Halaweh",    "1985-03-12", "M", "chest_pain_exertion"),
+    ("Ghassan Halaweh", "1978-07-24", "M", "chest_pain_radiating"),
+    ("Omar Taweel",     "1990-11-05", "M", "pneumonia"),
+    ("Tariq Khalil",    "1965-01-30", "M", "hypertension"),
+    ("Omar Diebas",     "1972-09-18", "M", "appendicitis"),
+    ("Qais Alqrem",     "1988-04-22", "M", "diabetes"),
 ]
 
-GP_DIAGNOSES = [
-    ("CP-01", "Chest pain with exertion",          "Cardiology"),
-    ("CP-02", "Chest tightness at rest",           "Cardiology"),
-    ("CP-03", "Shortness of breath + chest pain",  "Cardiology"),
-    ("HT-01", "Hypertension uncontrolled",         "Cardiology"),
-    ("CP-04", "Palpitations and chest discomfort", "Cardiology"),
-    ("CP-05", "Chest pain radiating to left arm",  "Cardiology"),
-]
 
-ED_DIAGNOSES = [
-    ("I20.0", "Unstable angina",                        "Dr. Samira Nasser"),
-    ("I21.9", "Acute myocardial infarction, unspecified","Dr. Khalid Mansour"),
-    ("I25.10","Atherosclerotic heart disease",           "Dr. Samira Nasser"),
-    ("I10",   "Essential hypertension",                  "Dr. Khalid Mansour"),
-    ("I47.2", "Ventricular tachycardia",                 "Dr. Samira Nasser"),
-    ("I20.1", "Angina pectoris with documented spasm",   "Dr. Khalid Mansour"),
-]
-
-LAB_TESTS = [
-    ("10839-9", "Troponin I",          "0.08", "ng/mL", "<0.04",  "FINAL", "2026-06-10"),
-    ("718-7",   "Hemoglobin",          "11.2", "g/dL",  "13.5-17.5","FINAL","2026-06-10"),
-    ("2093-3",  "Total Cholesterol",   "245",  "mg/dL", "<200",   "FINAL", "2026-06-10"),
-    ("2160-0",  "Creatinine",          "1.1",  "mg/dL", "0.7-1.2","FINAL", "2026-06-10"),
-    ("6690-2",  "WBC",                 "11.5", "10^3/uL","4.5-11.0","FINAL","2026-06-10"),
-    ("2823-3",  "Potassium",           "3.4",  "mEq/L", "3.5-5.0","FINAL", "2026-06-10"),
-]
-
-RADIOLOGY = [
-    ("CR", "399208008", "Plain chest X-ray",
-     "Cardiomegaly with mild pulmonary vascular congestion. No pneumothorax."),
-    ("CR", "399208008", "Plain chest X-ray",
-     "Mild cardiomegaly. Clear lung fields. No pleural effusion."),
-    ("CT", "77477000",  "CT thorax",
-     "No pulmonary embolism. Mild pericardial thickening noted."),
-    ("CR", "399208008", "Plain chest X-ray",
-     "Normal cardiac silhouette. Mild aortic calcification."),
-    ("CT", "77477000",  "CT thorax",
-     "Enlarged mediastinum. Recommend cardiac MRI for further evaluation."),
-    ("CR", "399208008", "Plain chest X-ray",
-     "Borderline cardiomegaly. No acute infiltrates."),
-]
-
-MEDICATIONS = [
-    ("1191",   "Aspirin",      "75mg",   "Once daily",   "Dr. Samira Nasser"),
-    ("41493",  "Atorvastatin", "40mg",   "Once at night","Dr. Khalid Mansour"),
-    ("321064", "Metoprolol",   "50mg",   "Twice daily",  "Dr. Samira Nasser"),
-    ("203150", "Lisinopril",   "10mg",   "Once daily",   "Dr. Khalid Mansour"),
-    ("56795",  "Nitroglycerin","0.4mg",  "PRN chest pain","Dr. Samira Nasser"),
-    ("308460", "Clopidogrel",  "75mg",   "Once daily",   "Dr. Khalid Mansour"),
-]
+def _profile(key):
+    profile = next((d for d in diagnosis_catalog.DIAGNOSIS_CATALOG if d["key"] == key), None)
+    if profile is None:
+        raise ValueError(f"Unknown diagnosis_catalog key: {key}")
+    return profile
 
 
 def create_gp_clinic():
@@ -77,16 +51,19 @@ def create_gp_clinic():
             gender TEXT,
             local_diagnosis_code TEXT,
             diagnosis_text TEXT,
-            referred_to TEXT
+            referred_to TEXT,
+            profile_key TEXT,
+            status TEXT
         )
     """)
-    for i, (name, dob, gender) in enumerate(PATIENTS):
-        code, text, ref = GP_DIAGNOSES[i]
-        c.execute("INSERT INTO patients VALUES (?,?,?,?,?,?,?)",
-                  (i+1, name, dob, gender, code, text, ref))
+    for i, (name, dob, gender, key) in enumerate(PATIENTS):
+        p = _profile(key)
+        c.execute("INSERT INTO patients VALUES (?,?,?,?,?,?,?,?,?)",
+                   (i + 1, name, dob, gender, p["gp_code"], p["gp_text"], p["department"],
+                    key, "registered"))
     conn.commit()
     conn.close()
-    print(f"  gp_clinic.db created ({len(PATIENTS)} patients)")
+    print(f"  gp_clinic.db created ({len(PATIENTS)} patients, all 'registered')")
 
 
 def create_hospital_ed():
@@ -106,13 +83,9 @@ def create_hospital_ed():
             admission_date TEXT
         )
     """)
-    for i, (name, dob, gender) in enumerate(PATIENTS):
-        icd, diag, doc = ED_DIAGNOSES[i]
-        c.execute("INSERT INTO admissions VALUES (?,?,?,?,?,?,?,?)",
-                  (i+1, name, dob, gender, icd, diag, doc, "2026-06-10"))
     conn.commit()
     conn.close()
-    print(f"  hospital_ed.db created ({len(PATIENTS)} admissions)")
+    print("  hospital_ed.db created (empty — admissions are created when Channel 1 fires)")
 
 
 def create_laboratory():
@@ -133,13 +106,9 @@ def create_laboratory():
             result_date TEXT
         )
     """)
-    for i, (name, _, _) in enumerate(PATIENTS):
-        loinc, test, val, unit, ref, status, date = LAB_TESTS[i]
-        c.execute("INSERT INTO orders VALUES (?,?,?,?,?,?,?,?,?)",
-                  (i+1, name, loinc, test, val, unit, ref, status, date))
     conn.commit()
     conn.close()
-    print(f"  laboratory.db created ({len(PATIENTS)} orders)")
+    print("  laboratory.db created (empty — orders are created when Channel 2 fires)")
 
 
 def create_radiology():
@@ -155,16 +124,13 @@ def create_radiology():
             snomed_procedure_code TEXT,
             procedure_name TEXT,
             report_text TEXT,
-            report_date TEXT
+            report_date TEXT,
+            status TEXT
         )
     """)
-    for i, (name, _, _) in enumerate(PATIENTS):
-        mod, snomed, proc, report = RADIOLOGY[i]
-        c.execute("INSERT INTO requests VALUES (?,?,?,?,?,?,?)",
-                  (i+1, name, mod, snomed, proc, report, "2026-06-10"))
     conn.commit()
     conn.close()
-    print(f"  radiology.db created ({len(PATIENTS)} requests)")
+    print("  radiology.db created (empty — requests are created when Channel 4 fires)")
 
 
 def create_pharmacy():
@@ -184,13 +150,32 @@ def create_pharmacy():
             order_date TEXT
         )
     """)
-    for i, (name, _, _) in enumerate(PATIENTS):
-        rxnorm, drug, dose, freq, doc = MEDICATIONS[i]
-        c.execute("INSERT INTO medications VALUES (?,?,?,?,?,?,?,?)",
-                  (i+1, name, rxnorm, drug, dose, freq, doc, "2026-06-10"))
     conn.commit()
     conn.close()
-    print(f"  pharmacy.db created ({len(PATIENTS)} medications)")
+    print("  pharmacy.db created (empty — prescriptions are created when Channel 5 fires)")
+
+
+def create_audit():
+    path = os.path.join(BASE, "audit.db")
+    conn = sqlite3.connect(path)
+    c = conn.cursor()
+    c.execute("DROP TABLE IF EXISTS events")
+    c.execute("""
+        CREATE TABLE events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            patient_id INTEGER,
+            ts TEXT,
+            channel TEXT,
+            title TEXT,
+            detail TEXT,
+            source_system TEXT,
+            dest_system TEXT,
+            standard TEXT
+        )
+    """)
+    conn.commit()
+    conn.close()
+    print("  audit.db created (empty — populated as real events fire)")
 
 
 if __name__ == "__main__":
@@ -200,4 +185,5 @@ if __name__ == "__main__":
     create_laboratory()
     create_radiology()
     create_pharmacy()
-    print("All databases ready.")
+    create_audit()
+    print("All databases ready. Patients start at 'registered' — walk the channels to build their record.")
