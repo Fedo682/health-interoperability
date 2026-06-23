@@ -17,6 +17,16 @@ ICD10_TO_MEDICATION = {
     "I47.9":  ("321064", "Metoprolol",   "50 mg",    "1 tablet twice daily",   "oral"),
     "I50.9":  ("203150", "Lisinopril",   "10 mg",    "1 tablet once daily",    "oral"),
     "I20.1":  ("1191",   "Aspirin",      "75 mg",    "1 tablet once daily",    "oral"),
+    "J18.9":  ("18631",  "Azithromycin", "500 mg",   "1 tablet once daily for 3 days", "oral"),
+    "K35.80": ("2193",   "Ceftriaxone",  "1 g",      "intravenous once daily", "intravenous"),
+    "E11.65": ("6809",   "Metformin",    "500 mg",   "1 tablet twice daily",   "oral"),
+}
+
+# Semantic: administration route → SNOMED CT route of administration
+ROUTE_TO_SNOMED = {
+    "oral":        ("26643006", "Oral route"),
+    "sublingual":  ("37839007", "Sublingual route"),
+    "intravenous": ("47625008", "Intravenous route"),
 }
 
 
@@ -26,6 +36,7 @@ def transform(admission: dict) -> dict:
         admission["icd10_code"],
         ("1191", "Aspirin", "75 mg", "1 tablet once daily", "oral")
     )
+    route_code, route_display = ROUTE_TO_SNOMED.get(route, ROUTE_TO_SNOMED["oral"])
 
     fhir_resource = {
         "resourceType": "MedicationRequest",
@@ -69,8 +80,8 @@ def transform(admission: dict) -> dict:
                     "coding": [
                         {
                             "system": "http://snomed.info/sct",
-                            "code": "26643006" if route == "oral" else "37839007",
-                            "display": "Oral route" if route == "oral" else "Sublingual route"
+                            "code": route_code,
+                            "display": route_display
                         }
                     ]
                 },

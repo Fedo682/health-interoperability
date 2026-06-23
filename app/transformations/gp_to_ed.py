@@ -13,6 +13,9 @@ LOCAL_TO_ICD10 = {
     "HT-01": ("I10",    "Essential hypertension"),
     "CP-04": ("I47.9",  "Paroxysmal tachycardia, unspecified"),
     "CP-05": ("I21.9",  "Acute myocardial infarction, unspecified"),
+    "RESP-01": ("J18.9",  "Pneumonia, unspecified organism"),
+    "GI-01":   ("K35.80", "Unspecified acute appendicitis"),
+    "DM-01":   ("E11.65", "Type 2 diabetes mellitus with hyperglycemia"),
 }
 
 

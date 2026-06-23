@@ -17,6 +17,7 @@ LOINC_TO_SNOMED = {
     "57698-3": ("13644009",  "Hypercholesterolemia (disorder)"),
     "51990-0": ("444244002", "Metabolic panel abnormal (finding)"),
     "49506-3": ("414916001", "Elevated troponin (finding)"),
+    "2345-7":  ("80394007",  "Hyperglycemia (disorder)"),
 }
 
 

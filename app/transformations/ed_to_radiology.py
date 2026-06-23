@@ -16,6 +16,9 @@ ICD10_TO_SNOMED_PROCEDURE = {
     "I47.9":  ("399208008", "Plain chest X-ray",         "CR"),
     "I50.9":  ("77477000",  "CT of thorax",              "CT"),
     "I20.1":  ("399208008", "Plain chest X-ray",         "CR"),
+    "J18.9":  ("399208008", "Plain chest X-ray",         "CR"),
+    "K35.80": ("169070000", "CT of abdomen and pelvis",  "CT"),
+    "E11.65": ("399208008", "Plain chest X-ray",         "CR"),
 }
 
 
