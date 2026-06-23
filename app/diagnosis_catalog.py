@@ -44,7 +44,7 @@ DIAGNOSIS_CATALOG = [
         "result_value": "245", "unit": "mg/dL", "reference_range": "<200",
         "modality": "CT", "snomed_proc": "77477000", "proc_name": "CT of thorax",
         "report": "No pulmonary embolism. Mild pericardial thickening noted.",
-        "rxnorm": "308460", "drug": "Clopidogrel", "dose": "75 mg", "frequency": "Once daily",
+        "rxnorm": "203150", "drug": "Lisinopril", "dose": "10 mg", "frequency": "Once daily",
     },
     {
         "key": "hypertension",
@@ -68,7 +68,7 @@ DIAGNOSIS_CATALOG = [
         "physician": "Dr. Samira Nasser",
         "loinc_code": "6690-2", "test_name": "WBC",
         "result_value": "11.5", "unit": "10^3/uL", "reference_range": "4.5-11.0",
-        "modality": "CT", "snomed_proc": "77477000", "proc_name": "CT of thorax",
+        "modality": "CR", "snomed_proc": "399208008", "proc_name": "Plain chest X-ray",
         "report": "Enlarged mediastinum. Recommend cardiac MRI for further evaluation.",
         "rxnorm": "321064", "drug": "Metoprolol", "dose": "50 mg", "frequency": "Twice daily",
     },
@@ -83,7 +83,7 @@ DIAGNOSIS_CATALOG = [
         "result_value": "3.4", "unit": "mEq/L", "reference_range": "3.5-5.0",
         "modality": "CR", "snomed_proc": "399208008", "proc_name": "Plain chest X-ray",
         "report": "Borderline cardiomegaly. No acute infiltrates.",
-        "rxnorm": "1191", "drug": "Aspirin", "dose": "75 mg", "frequency": "Once daily",
+        "rxnorm": "308460", "drug": "Clopidogrel", "dose": "75 mg", "frequency": "Once daily",
     },
     {
         "key": "pneumonia",
