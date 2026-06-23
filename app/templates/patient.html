@@ -92,29 +92,37 @@
       </div>
       <div>
         <div class="card-title">Journey Overview</div>
-        <div class="card-subtitle">5 interoperability channels</div>
+        <div class="card-subtitle">6 interoperability channels, with a branch point at the ED</div>
       </div>
     </div>
 
-    {% set steps = [
-      ("#1E40AF","1","GP → Hospital ED","HL7 v2 ADT^A01","ICD-10"),
-      ("#7C3AED","2","Hospital ED → Laboratory","HL7 v2 ORM^O01","LOINC"),
-      ("#0D9488","3","Laboratory → Hospital ED","HL7 v2 ORU^R01","SNOMED CT"),
-      ("#EA580C","4","Hospital ED → Radiology","DICOM Metadata","SNOMED CT"),
-      ("#059669","5","Hospital ED → Pharmacy","FHIR R4 MedRequest","RxNorm"),
+    {% set groups = [
+      [("#1E40AF","1","GP → Hospital ED","HL7 v2 ADT^A01","ICD-10")],
+      [("#7C3AED","2","Hospital ED → Laboratory","HL7 v2 ORM^O01","LOINC"),
+       ("#EA580C","4","Hospital ED → Radiology","DICOM Metadata","SNOMED CT")],
+      [("#0D9488","3","Laboratory → Hospital ED","HL7 v2 ORU^R01","SNOMED CT"),
+       ("#EA580C","6","Radiology → Hospital ED","HL7 v2 ORU^R01","SNOMED CT")],
+      [("#059669","5","Hospital ED → Pharmacy","FHIR R4 MedRequest","RxNorm")],
     ] %}
-    <div style="display:flex; flex-direction:column; gap:10px;">
-      {% for color, num, label, std, term in steps %}
-      <div style="display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:8px; background:#F8FAFC; border:1px solid var(--color-border);">
-        <div style="width:26px; height:26px; border-radius:50%; background:{{ color }}; color:white; font-size:0.75rem; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0;">{{ num }}</div>
-        <div style="flex:1; min-width:0;">
-          <div style="font-weight:600; font-size:0.82rem; color:var(--color-text);">{{ label }}</div>
-          <div style="font-size:0.72rem; color:var(--color-text-muted); margin-top:1px;">{{ std }} &bull; {{ term }}</div>
+    <div style="display:flex; flex-direction:column; gap:6px;">
+      {% for group in groups %}
+        {% if group|length > 1 %}
+        <div style="font-size:0.68rem; font-weight:700; color:var(--color-text-muted); text-align:center; letter-spacing:0.06em; margin:2px 0;">CHOOSE ONE</div>
+        {% endif %}
+        <div style="display:flex; flex-direction:column; gap:8px; {% if group|length > 1 %}padding:8px; border:1px dashed var(--color-border); border-radius:10px;{% endif %}">
+          {% for color, num, label, std, term in group %}
+          <div style="display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:8px; background:#F8FAFC; border:1px solid var(--color-border);">
+            <div style="width:26px; height:26px; border-radius:50%; background:{{ color }}; color:white; font-size:0.75rem; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0;">{{ num }}</div>
+            <div style="flex:1; min-width:0;">
+              <div style="font-weight:600; font-size:0.82rem; color:var(--color-text);">{{ label }}</div>
+              <div style="font-size:0.72rem; color:var(--color-text-muted); margin-top:1px;">{{ std }} &bull; {{ term }}</div>
+            </div>
+            <a href="/channel/{{ num }}/{{ patient.id }}" style="color:{{ color }}; text-decoration:none; font-size:0.8rem; font-weight:600; flex-shrink:0; cursor:pointer;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+          </div>
+          {% endfor %}
         </div>
-        <a href="/channel/{{ num }}/{{ patient.id }}" style="color:{{ color }}; text-decoration:none; font-size:0.8rem; font-weight:600; flex-shrink:0; cursor:pointer;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </a>
-      </div>
       {% endfor %}
     </div>
   </div>

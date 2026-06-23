@@ -2,7 +2,7 @@
 {% block title %}{{ result.channel }}{% endblock %}
 {% block content %}
 
-{% set channel_colors = {1:"#1E40AF", 2:"#7C3AED", 3:"#0D9488", 4:"#EA580C", 5:"#059669"} %}
+{% set channel_colors = {1:"#1E40AF", 2:"#7C3AED", 3:"#0D9488", 4:"#EA580C", 5:"#059669", 6:"#EA580C"} %}
 {% set channel_color = channel_colors[channel_num] %}
 {% set channel_labels = {
   1: ("GP Clinic", "Hospital ED", "HL7 v2 ADT^A01", "badge-hl7"),
@@ -10,6 +10,7 @@
   3: ("Laboratory", "Hospital ED", "HL7 v2 ORU^R01", "badge-hl7"),
   4: ("Hospital ED", "Radiology",  "DICOM Metadata",  "badge-dicom"),
   5: ("Hospital ED", "Pharmacy",   "FHIR R4",         "badge-fhir"),
+  6: ("Radiology", "Hospital ED", "HL7 v2 ORU^R01", "badge-hl7"),
 } %}
 {% set src, dst, std, std_badge = channel_labels[channel_num] %}
 
@@ -23,13 +24,20 @@
 </div>
 
 <!-- Step progress bar -->
+{% set stage_map = {1:1, 2:2, 4:2, 3:3, 6:3, 5:4} %}
+{% set current_stage = stage_map[channel_num] %}
+{% set stage_labels = {
+  1: "GP→ED",
+  2: "ED→Lab" if channel_num == 2 else ("ED→Rad" if channel_num == 4 else "ED→Lab/Rad"),
+  3: "Lab→ED" if channel_num == 3 else ("Rad→ED" if channel_num == 6 else "Lab/Rad→ED"),
+  4: "ED→Pharm",
+} %}
 <div class="card" style="padding:20px 24px;">
   <div style="display:flex; align-items:center; gap:0;">
-    {% for i in range(1,6) %}
-      {% set active = (i == channel_num) %}
-      {% set done   = (i < channel_num) %}
-      {% set ch_colors = {1:"#1E40AF",2:"#7C3AED",3:"#0D9488",4:"#EA580C",5:"#059669"} %}
-      {% set ch_names  = {1:"GP→ED",2:"ED→Lab",3:"Lab→ED",4:"ED→Rad",5:"ED→Pharm"} %}
+    {% for i in range(1,5) %}
+      {% set active = (i == current_stage) %}
+      {% set done   = (i < current_stage) %}
+      {% set ch_colors = {1:"#1E40AF",2:"#7C3AED",3:"#0D9488",4:"#059669"} %}
       <div style="display:flex; flex-direction:column; align-items:center; gap:5px; flex:1; position:relative;">
         <div style="
           width:34px; height:34px; border-radius:50%;
@@ -48,11 +56,11 @@
           {% endif %}
         </div>
         <span style="font-size:0.68rem; font-weight:{% if active %}700{% else %}500{% endif %}; color:{% if active %}{{ ch_colors[i] }}{% elif done %}var(--color-text-muted){% else %}#CBD5E1{% endif %}; white-space:nowrap;">
-          {{ ch_names[i] }}
+          {{ stage_labels[i] }}
         </span>
       </div>
-      {% if i < 5 %}
-        <div style="flex:1; height:2px; background:{% if i < channel_num %}{{ ch_colors[i] }}{% else %}#E2E8F0{% endif %}; margin-bottom:22px; min-width:16px;"></div>
+      {% if i < 4 %}
+        <div style="flex:1; height:2px; background:{% if i < current_stage %}{{ ch_colors[i] }}{% else %}#E2E8F0{% endif %}; margin-bottom:22px; min-width:16px;"></div>
       {% endif %}
     {% endfor %}
   </div>
@@ -164,15 +172,27 @@
     Patient Record
   </a>
 
-  {% if channel_num > 1 %}
-  <a href="/channel/{{ channel_num - 1 }}/{{ pid }}" class="btn btn-ghost" style="cursor:pointer;">
+  {% set prev_map = {2:1, 3:2, 4:1, 6:4} %}
+  {% if prev_map.get(channel_num) %}
+  <a href="/channel/{{ prev_map[channel_num] }}/{{ pid }}" class="btn btn-ghost" style="cursor:pointer;">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-    Channel {{ channel_num - 1 }}
+    Channel {{ prev_map[channel_num] }}
   </a>
   {% endif %}
 
-  {% set next_labels = {2:"Order Lab Tests",3:"Receive Lab Results",4:"Request Radiology",5:"Send to Pharmacy"} %}
-  {% if next_channel %}
+  {% set next_labels = {2:"Order Lab Tests",3:"Receive Lab Results",4:"Request Radiology",5:"Send to Pharmacy",6:"Receive Radiology Report"} %}
+  {% if choice_channels %}
+  <div style="margin-left:auto; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+    <span style="font-size:0.8rem; color:var(--color-text-muted); font-weight:600;">Send patient to:</span>
+    {% for ch, label in choice_channels %}
+    <a href="/channel/{{ ch }}/{{ pid }}" class="btn btn-primary" style="cursor:pointer;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      {{ label }} — Channel {{ ch }}
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </a>
+    {% endfor %}
+  </div>
+  {% elif next_channel %}
   <a href="/channel/{{ next_channel }}/{{ pid }}" class="btn btn-primary" style="cursor:pointer; margin-left:auto;">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
     {{ next_labels[next_channel] }} — Channel {{ next_channel }}

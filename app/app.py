@@ -8,7 +8,7 @@ from flask import Flask, render_template, redirect, request, url_for
 # Allow importing transformations from sibling package
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from transformations import gp_to_ed, ed_to_lab, lab_to_ed, ed_to_radiology, ed_to_pharmacy
+from transformations import gp_to_ed, ed_to_lab, lab_to_ed, ed_to_radiology, radiology_to_ed, ed_to_pharmacy
 import diagnosis_catalog
 
 app = Flask(__name__)
@@ -106,7 +106,9 @@ def channel1(pid):
     row = conn.execute("SELECT * FROM patients WHERE id=?", (pid,)).fetchone()
     conn.close()
     result = gp_to_ed.transform(dict(row))
-    return render_template("exchange.html", result=result, pid=pid, channel_num=1, next_channel=2)
+    choice_channels = [(2, "Order Lab Tests"), (4, "Request Radiology Imaging")]
+    return render_template("exchange.html", result=result, pid=pid, channel_num=1,
+                            next_channel=None, choice_channels=choice_channels)
 
 
 @app.route("/channel/2/<int:pid>")
@@ -124,7 +126,7 @@ def channel3(pid):
     row = conn.execute("SELECT * FROM orders WHERE id=?", (pid,)).fetchone()
     conn.close()
     result = lab_to_ed.transform(dict(row))
-    return render_template("exchange.html", result=result, pid=pid, channel_num=3, next_channel=4)
+    return render_template("exchange.html", result=result, pid=pid, channel_num=3, next_channel=5)
 
 
 @app.route("/channel/4/<int:pid>")
@@ -133,7 +135,16 @@ def channel4(pid):
     row = conn.execute("SELECT * FROM admissions WHERE id=?", (pid,)).fetchone()
     conn.close()
     result = ed_to_radiology.transform(dict(row))
-    return render_template("exchange.html", result=result, pid=pid, channel_num=4, next_channel=5)
+    return render_template("exchange.html", result=result, pid=pid, channel_num=4, next_channel=6)
+
+
+@app.route("/channel/6/<int:pid>")
+def channel6(pid):
+    conn = get_db("radiology")
+    row = conn.execute("SELECT * FROM requests WHERE id=?", (pid,)).fetchone()
+    conn.close()
+    result = radiology_to_ed.transform(dict(row))
+    return render_template("exchange.html", result=result, pid=pid, channel_num=6, next_channel=5)
 
 
 @app.route("/channel/5/<int:pid>")
