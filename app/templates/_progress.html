@@ -1,0 +1,35 @@
+{# Shared 5-stage clinical-workflow progress bar.
+   Caller must set:  current_stage (1..5)  and  stage_labels (dict 1..5 -> str). #}
+{% set ch_colors = {1:"#1E40AF", 2:"#7C3AED", 3:"#0D9488", 4:"#DB2777", 5:"#059669"} %}
+<div class="card" style="padding:20px 24px;">
+  <div style="display:flex; align-items:center; gap:0;">
+    {% for i in range(1,6) %}
+      {% set active = (i == current_stage) %}
+      {% set done   = (i < current_stage) %}
+      <div style="display:flex; flex-direction:column; align-items:center; gap:5px; flex:1; position:relative;">
+        <div style="
+          width:34px; height:34px; border-radius:50%;
+          background:{% if active %}{{ ch_colors[i] }}{% elif done %}{{ ch_colors[i] }}{% else %}#E2E8F0{% endif %};
+          color:{% if active or done %}white{% else %}#94A3B8{% endif %};
+          display:flex; align-items:center; justify-content:center;
+          font-weight:700; font-size:0.8rem;
+          border: {% if active %}3px solid white; box-shadow:0 0 0 3px {{ ch_colors[i] }}{% else %}none{% endif %};
+          z-index:1; position:relative;
+          transition: background 0.2s;
+        ">
+          {% if done %}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          {% else %}
+            {{ i }}
+          {% endif %}
+        </div>
+        <span style="font-size:0.68rem; font-weight:{% if active %}700{% else %}500{% endif %}; color:{% if active %}{{ ch_colors[i] }}{% elif done %}var(--color-text-muted){% else %}#CBD5E1{% endif %}; white-space:nowrap;">
+          {{ stage_labels[i] }}
+        </span>
+      </div>
+      {% if i < 5 %}
+        <div style="flex:1; height:2px; background:{% if i < current_stage %}{{ ch_colors[i] }}{% else %}#E2E8F0{% endif %}; margin-bottom:22px; min-width:12px;"></div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>

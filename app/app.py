@@ -8,7 +8,7 @@ from flask import Flask, render_template, redirect, request, url_for
 # Allow importing transformations from sibling package
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from transformations import gp_to_ed, ed_to_lab, lab_to_ed, ed_to_radiology, ed_to_pharmacy
+from transformations import gp_to_ed, ed_to_lab, lab_to_ed, ed_to_radiology, radiology_to_ed, ed_to_pharmacy
 import diagnosis_catalog
 
 app = Flask(__name__)
@@ -29,6 +29,44 @@ def insert_row(db_name, table, values):
     conn.execute(f"INSERT INTO {table} VALUES ({placeholders})", values)
     conn.commit()
     conn.close()
+
+
+def update_admission_diagnosis(pid, icd10_code, diagnosis_text):
+    conn = get_db("hospital_ed")
+    conn.execute(
+        "UPDATE admissions SET icd10_code=?, diagnosis_text=? WHERE id=?",
+        (icd10_code, diagnosis_text, pid),
+    )
+    conn.commit()
+    conn.close()
+
+
+def sync_prescription(pid, icd10_code):
+    """Keep the persisted pharmacy record in step with the confirmed diagnosis so the
+    summary view matches the live Channel 5 (ED→Pharmacy) prescription. Uses the same
+    ICD-10→drug mapping the pharmacy transform uses, with the same fallback."""
+    rxnorm, drug, dose, frequency, _route = ed_to_pharmacy.ICD10_TO_MEDICATION.get(
+        icd10_code, ("1191", "Aspirin", "75 mg", "1 tablet once daily", "oral")
+    )
+    conn = get_db("pharmacy")
+    conn.execute(
+        "UPDATE medications SET rxnorm_code=?, drug_name=?, dose=?, frequency=? WHERE id=?",
+        (rxnorm, drug, dose, frequency, pid),
+    )
+    conn.commit()
+    conn.close()
+
+
+def icd10_options():
+    """Distinct (code, text) ICD-10 pairs from the diagnosis catalog, for the
+    doctor's final-diagnosis dropdown. All have pharmacy mappings."""
+    seen, options = set(), []
+    for d in diagnosis_catalog.DIAGNOSIS_CATALOG:
+        code = d["icd10_code"]
+        if code not in seen:
+            seen.add(code)
+            options.append((code, d["icd10_text"]))
+    return options
 
 
 # ── Home ────────────────────────────────────────────────────────────────────
@@ -106,7 +144,9 @@ def channel1(pid):
     row = conn.execute("SELECT * FROM patients WHERE id=?", (pid,)).fetchone()
     conn.close()
     result = gp_to_ed.transform(dict(row))
-    return render_template("exchange.html", result=result, pid=pid, channel_num=1, next_channel=2)
+    choice_channels = [(2, "Order Lab Tests"), (4, "Request Radiology Imaging")]
+    return render_template("exchange.html", result=result, pid=pid, channel_num=1,
+                            next_channel=None, choice_channels=choice_channels)
 
 
 @app.route("/channel/2/<int:pid>")
@@ -124,7 +164,8 @@ def channel3(pid):
     row = conn.execute("SELECT * FROM orders WHERE id=?", (pid,)).fetchone()
     conn.close()
     result = lab_to_ed.transform(dict(row))
-    return render_template("exchange.html", result=result, pid=pid, channel_num=3, next_channel=4)
+    return render_template("exchange.html", result=result, pid=pid, channel_num=3,
+                            next_url=url_for("diagnosis", pid=pid), next_label="Doctor: Final Diagnosis")
 
 
 @app.route("/channel/4/<int:pid>")
@@ -133,7 +174,38 @@ def channel4(pid):
     row = conn.execute("SELECT * FROM admissions WHERE id=?", (pid,)).fetchone()
     conn.close()
     result = ed_to_radiology.transform(dict(row))
-    return render_template("exchange.html", result=result, pid=pid, channel_num=4, next_channel=5)
+    return render_template("exchange.html", result=result, pid=pid, channel_num=4, next_channel=6)
+
+
+@app.route("/channel/6/<int:pid>")
+def channel6(pid):
+    conn = get_db("radiology")
+    row = conn.execute("SELECT * FROM requests WHERE id=?", (pid,)).fetchone()
+    conn.close()
+    result = radiology_to_ed.transform(dict(row))
+    return render_template("exchange.html", result=result, pid=pid, channel_num=6,
+                            next_url=url_for("diagnosis", pid=pid), next_label="Doctor: Final Diagnosis")
+
+
+# ── Hospital doctor: final diagnosis ──────────────────────────────────────────
+
+@app.route("/diagnosis/<int:pid>", methods=["GET"])
+def diagnosis(pid):
+    ed  = dict(get_db("hospital_ed").execute("SELECT * FROM admissions WHERE id=?", (pid,)).fetchone())
+    lab = dict(get_db("laboratory").execute("SELECT * FROM orders WHERE id=?", (pid,)).fetchone())
+    rad = dict(get_db("radiology").execute("SELECT * FROM requests WHERE id=?", (pid,)).fetchone())
+    return render_template("diagnosis.html", pid=pid, ed=ed, lab=lab, rad=rad,
+                            icd10_options=icd10_options())
+
+
+@app.route("/diagnosis/<int:pid>", methods=["POST"])
+def diagnosis_confirm(pid):
+    icd10_code = request.form.get("icd10_code", "").strip()
+    diagnosis_text = request.form.get("diagnosis_text", "").strip()
+    if icd10_code:
+        update_admission_diagnosis(pid, icd10_code, diagnosis_text)
+        sync_prescription(pid, icd10_code)
+    return redirect(url_for("channel5", pid=pid))
 
 
 @app.route("/channel/5/<int:pid>")
@@ -158,4 +230,4 @@ def summary(pid):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=int(os.environ.get("PORT", 5000)))

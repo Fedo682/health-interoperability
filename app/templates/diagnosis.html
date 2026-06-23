@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}Final Diagnosis — {{ ed.patient_name }}{% endblock %}
+{% block content %}
+
+<!-- Breadcrumb -->
+<div style="display:flex; align-items:center; gap:6px; font-size:0.8rem; color:var(--color-text-muted); margin-bottom:20px;">
+  <a href="/" style="color:var(--color-primary); text-decoration:none; font-weight:500;">Patients</a>
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+  <a href="/patient/{{ pid }}" style="color:var(--color-primary); text-decoration:none; font-weight:500;">Patient</a>
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+  <span>Final Diagnosis</span>
+</div>
+
+<!-- Progress bar (stage 4) -->
+{% set current_stage = 4 %}
+{% set stage_labels = {1:"GP→ED", 2:"Order", 3:"Results", 4:"Final Dx", 5:"Prescribe"} %}
+{% include "_progress.html" %}
+
+<!-- Doctor header -->
+<div class="card" style="border-left:5px solid #DB2777; padding:20px 24px;">
+  <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+    <div style="width:46px; height:46px; border-radius:12px; background:#FCE7F3; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#DB2777" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M9.5 12h5"/><path d="M12 9.5v5"/></svg>
+    </div>
+    <div style="flex:1; min-width:0;">
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:6px;">
+        <span style="background:#DB2777; color:white; font-size:0.72rem; font-weight:700; padding:3px 10px; border-radius:20px; letter-spacing:0.04em;">CLINICAL DECISION</span>
+      </div>
+      <h1 style="font-size:1.2rem; font-weight:700; letter-spacing:-0.02em; color:var(--color-text);">Hospital Doctor — Final Assessment</h1>
+      <div style="font-size:0.82rem; color:var(--color-text-muted); margin-top:4px;">
+        {{ ed.attending_physician }} reviews the returned lab &amp; radiology results, confirms the final diagnosis, then prescribes.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Results: Lab + Radiology -->
+<div class="grid-2">
+  <!-- Lab results -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:#F5F3FF;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v6.5L4.5 17a2 2 0 0 0 1.8 3h11.4a2 2 0 0 0 1.8-3L15 8.5V2"/><path d="M7 2h10"/></svg>
+      </div>
+      <div>
+        <div class="card-title">Laboratory Results</div>
+        <div class="card-subtitle">From the Laboratory (Channel 3)</div>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tbody>
+          <tr><td style="font-weight:600; color:var(--color-text-muted); font-size:0.8rem; width:140px;">Test</td><td style="font-weight:600;">{{ lab.test_name }} <code style="background:#EDE9FE; color:#5B21B6;">{{ lab.loinc_code }}</code></td></tr>
+          <tr><td style="font-weight:600; color:var(--color-text-muted); font-size:0.8rem;">Result</td><td style="font-weight:700;">{{ lab.result_value }} {{ lab.unit }}</td></tr>
+          <tr><td style="font-weight:600; color:var(--color-text-muted); font-size:0.8rem;">Reference</td><td>{{ lab.reference_range }}</td></tr>
+          <tr><td style="font-weight:600; color:var(--color-text-muted); font-size:0.8rem;">Status</td><td>{{ lab.status }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Radiology report -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:#FFF7ED;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EA580C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+      </div>
+      <div>
+        <div class="card-title">Radiology Report</div>
+        <div class="card-subtitle">From Radiology (Channel 6)</div>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tbody>
+          <tr><td style="font-weight:600; color:var(--color-text-muted); font-size:0.8rem; width:140px;">Procedure</td><td style="font-weight:600;">{{ rad.procedure_name }} <code style="background:#FFEDD5; color:#9A3412;">{{ rad.snomed_procedure_code }}</code></td></tr>
+          <tr><td style="font-weight:600; color:var(--color-text-muted); font-size:0.8rem;">Modality</td><td>{{ rad.modality }}</td></tr>
+          <tr><td style="font-weight:600; color:var(--color-text-muted); font-size:0.8rem;">Findings</td><td>{{ rad.report_text }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Final diagnosis form -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-icon" style="background:#FCE7F3;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#DB2777" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    </div>
+    <div>
+      <div class="card-title">Confirm Final Diagnosis</div>
+      <div class="card-subtitle">Drives the prescription sent to Pharmacy (Channel 5)</div>
+    </div>
+  </div>
+
+  <form method="post" action="/diagnosis/{{ pid }}">
+    <div class="form-group">
+      <label class="form-label" for="icd10_code">Final ICD-10 Diagnosis</label>
+      <select class="form-select" id="icd10_code" name="icd10_code" required onchange="syncDxText()">
+        {% for code, text in icd10_options %}
+        <option value="{{ code }}" data-text="{{ text }}" {% if code == ed.icd10_code %}selected{% endif %}>{{ code }} — {{ text }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="diagnosis_text">Diagnosis Description</label>
+      <input class="form-input" type="text" id="diagnosis_text" name="diagnosis_text" value="{{ ed.diagnosis_text }}" required>
+    </div>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:8px;">
+      <a href="/channel/2/{{ pid }}" class="btn btn-ghost btn-sm" style="cursor:pointer;">Order Lab — Channel 2</a>
+      <a href="/channel/4/{{ pid }}" class="btn btn-ghost btn-sm" style="cursor:pointer;">Order Radiology — Channel 4</a>
+      <button type="submit" class="btn btn-primary" style="cursor:pointer; margin-left:auto;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        Confirm Diagnosis &amp; Prescribe — Channel 5
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+  </form>
+</div>
+
+<div class="card" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:32px;">
+  <a href="/patient/{{ pid }}" class="btn btn-ghost" style="cursor:pointer;">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    Patient Record
+  </a>
+  <a href="/" class="btn btn-ghost" style="cursor:pointer;">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    All Patients
+  </a>
+</div>
+
+<script>
+  function syncDxText() {
+    var sel = document.getElementById("icd10_code");
+    var opt = sel.options[sel.selectedIndex];
+    document.getElementById("diagnosis_text").value = opt.getAttribute("data-text");
+  }
+</script>
+
+{% endblock %}
