@@ -13,6 +13,9 @@ LOCAL_TO_ICD10 = {
     "HT-01": ("I10",    "Essential hypertension"),
     "CP-04": ("I47.9",  "Paroxysmal tachycardia, unspecified"),
     "CP-05": ("I21.9",  "Acute myocardial infarction, unspecified"),
+    "RESP-01": ("J18.9",  "Pneumonia, unspecified organism"),
+    "GI-01":   ("K35.80", "Unspecified acute appendicitis"),
+    "DM-01":   ("E11.65", "Type 2 diabetes mellitus with hyperglycemia"),
 }
 
 
@@ -39,7 +42,7 @@ def transform(patient: dict) -> dict:
     hl7 = (
         f"MSH|^~\\&|GP_CLINIC|AL-NOUR_CLINIC|HOSPITAL_ED|CITY_HOSPITAL|{now}||ADT^A01|MSG{patient['id']:04d}|P|2.5\r"
         f"PID|1||{patient['id']:06d}^^^GP_CLINIC||{name_hl7}||{dob_compact}|{patient['gender']}|||123 Main St^^Amman^^11180^JO\r"
-        f"PV1|1|E|ED^01^A|||||||Cardiology\r"
+        f"PV1|1|E|ED^01^A|||||||{patient['referred_to']}\r"
         f"DG1|1||{icd10_code}^{icd10_text}^ICD10|{icd10_text}||A\r"
     )
 

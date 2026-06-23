@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Add Patient — Health Interoperability Demo{% endblock %}
+{% block content %}
+
+<!-- Breadcrumb -->
+<div style="display:flex; align-items:center; gap:6px; font-size:0.8rem; color:var(--color-text-muted); margin-bottom:20px;">
+  <a href="/" style="color:var(--color-primary); text-decoration:none; font-weight:500;">Patients</a>
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+  <span>Add Patient</span>
+</div>
+
+<div class="card" style="background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%); border: none; color: white; margin-bottom:20px;">
+  <h2 style="font-size:1.1rem; font-weight:700;">Add a New Patient</h2>
+  <p style="font-size:0.85rem; opacity:0.85; margin-top:6px; line-height:1.6;">
+    Enter a patient and pick a presenting diagnosis. The same GP &rarr; ED &rarr; Lab &rarr; Radiology &rarr; Pharmacy
+    pipeline you saw for the seeded patients will run live on this new record, mapping it through ICD-10, LOINC,
+    SNOMED CT and RxNorm just like before.
+  </p>
+</div>
+
+<div class="card" style="max-width:560px;">
+  {% if error %}
+  <div class="alert-error">{{ error }}</div>
+  {% endif %}
+
+  <form method="post" action="/patient/new">
+    <div class="form-group">
+      <label class="form-label" for="name">Full Name</label>
+      <input class="form-input" type="text" id="name" name="name" value="{{ form.get('name', '') }}" required>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="dob">Date of Birth</label>
+      <input class="form-input" type="date" id="dob" name="dob" value="{{ form.get('dob', '') }}" required>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="gender">Gender</label>
+      <select class="form-select" id="gender" name="gender" required>
+        <option value="" disabled {% if not form.get('gender') %}selected{% endif %}>Select gender</option>
+        <option value="M" {% if form.get('gender') == 'M' %}selected{% endif %}>Male</option>
+        <option value="F" {% if form.get('gender') == 'F' %}selected{% endif %}>Female</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="diagnosis_key">Presenting Diagnosis (GP Clinic)</label>
+      <select class="form-select" id="diagnosis_key" name="diagnosis_key" required>
+        <option value="" disabled {% if not form.get('diagnosis_key') %}selected{% endif %}>Select a diagnosis</option>
+        {% for d in diagnoses %}
+        <option value="{{ d.key }}" {% if form.get('diagnosis_key') == d.key %}selected{% endif %}>{{ d.label }}</option>
+        {% endfor %}
+      </select>
+      <div class="form-hint">This drives the ICD-10, LOINC, SNOMED CT and RxNorm mappings used by every channel.</div>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-top:8px;">
+      <button type="submit" class="btn btn-primary">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Create Patient &amp; Start Journey
+      </button>
+      <a href="/" class="btn btn-ghost" style="cursor:pointer;">Cancel</a>
+    </div>
+  </form>
+</div>
+
+{% endblock %}

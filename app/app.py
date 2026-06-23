@@ -1,13 +1,15 @@
 import sqlite3
 import os
 import sys
+from datetime import datetime
 
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, redirect, request, url_for
 
 # Allow importing transformations from sibling package
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from transformations import gp_to_ed, ed_to_lab, lab_to_ed, ed_to_radiology, ed_to_pharmacy
+import diagnosis_catalog
 
 app = Flask(__name__)
 
@@ -21,6 +23,14 @@ def get_db(name):
     return conn
 
 
+def insert_row(db_name, table, values):
+    conn = get_db(db_name)
+    placeholders = ",".join("?" * len(values))
+    conn.execute(f"INSERT INTO {table} VALUES ({placeholders})", values)
+    conn.commit()
+    conn.close()
+
+
 # ── Home ────────────────────────────────────────────────────────────────────
 
 @app.route("/")
@@ -29,6 +39,51 @@ def index():
     patients = conn.execute("SELECT * FROM patients ORDER BY id").fetchall()
     conn.close()
     return render_template("index.html", patients=patients)
+
+
+# ── Add patient ───────────────────────────────────────────────────────────────
+
+@app.route("/patient/new", methods=["GET"])
+def new_patient_form():
+    return render_template("add_patient.html", diagnoses=diagnosis_catalog.DIAGNOSIS_CATALOG, form={}, error=None)
+
+
+@app.route("/patient/new", methods=["POST"])
+def create_patient():
+    name = request.form.get("name", "").strip()
+    dob = request.form.get("dob", "").strip()
+    gender = request.form.get("gender", "").strip()
+    diagnosis_key = request.form.get("diagnosis_key", "").strip()
+
+    profile = next((d for d in diagnosis_catalog.DIAGNOSIS_CATALOG if d["key"] == diagnosis_key), None)
+
+    if not name or not dob or gender not in ("M", "F") or profile is None:
+        return render_template(
+            "add_patient.html",
+            diagnoses=diagnosis_catalog.DIAGNOSIS_CATALOG,
+            form={"name": name, "dob": dob, "gender": gender, "diagnosis_key": diagnosis_key},
+            error="Please provide a name, date of birth, gender, and diagnosis.",
+        ), 400
+
+    conn = get_db("gp_clinic")
+    new_id = (conn.execute("SELECT MAX(id) AS m FROM patients").fetchone()["m"] or 0) + 1
+    conn.close()
+
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    insert_row("gp_clinic", "patients",
+               (new_id, name, dob, gender, profile["gp_code"], profile["gp_text"], profile["department"]))
+    insert_row("hospital_ed", "admissions",
+               (new_id, name, dob, gender, profile["icd10_code"], profile["icd10_text"], profile["physician"], today))
+    insert_row("laboratory", "orders",
+               (new_id, name, profile["loinc_code"], profile["test_name"], profile["result_value"],
+                profile["unit"], profile["reference_range"], "FINAL", today))
+    insert_row("radiology", "requests",
+               (new_id, name, profile["modality"], profile["snomed_proc"], profile["proc_name"], profile["report"], today))
+    insert_row("pharmacy", "medications",
+               (new_id, name, profile["rxnorm"], profile["drug"], profile["dose"], profile["frequency"], profile["physician"], today))
+
+    return redirect(url_for("patient", pid=new_id))
 
 
 # ── Patient detail (GP record) ───────────────────────────────────────────────
