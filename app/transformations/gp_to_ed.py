@@ -42,7 +42,7 @@ def transform(patient: dict) -> dict:
     hl7 = (
         f"MSH|^~\\&|GP_CLINIC|AL-NOUR_CLINIC|HOSPITAL_ED|CITY_HOSPITAL|{now}||ADT^A01|MSG{patient['id']:04d}|P|2.5\r"
         f"PID|1||{patient['id']:06d}^^^GP_CLINIC||{name_hl7}||{dob_compact}|{patient['gender']}|||123 Main St^^Amman^^11180^JO\r"
-        f"PV1|1|E|ED^01^A|||||||Cardiology\r"
+        f"PV1|1|E|ED^01^A|||||||{patient['referred_to']}\r"
         f"DG1|1||{icd10_code}^{icd10_text}^ICD10|{icd10_text}||A\r"
     )
 
