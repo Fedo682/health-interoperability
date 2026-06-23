@@ -1,0 +1,14 @@
+{% macro status_badge(status) %}
+{% set meta = {
+  "registered":     ("Registered",     "#64748B", "#F1F5F9"),
+  "admitted":       ("Admitted",       "#1E40AF", "#DBEAFE"),
+  "tests_ordered":  ("Tests Ordered",  "#7C3AED", "#EDE9FE"),
+  "results_in":     ("Results In",     "#0D9488", "#CCFBF1"),
+  "diagnosed":      ("Diagnosed",      "#DB2777", "#FCE7F3"),
+  "prescribed":     ("Prescribed",     "#059669", "#D1FAE5"),
+} %}
+{% set label, fg, bg = meta.get(status, ("Registered", "#64748B", "#F1F5F9")) %}
+<span style="display:inline-flex; align-items:center; gap:5px; background:{{ bg }}; color:{{ fg }}; font-size:0.72rem; font-weight:700; padding:3px 10px; border-radius:20px; letter-spacing:0.02em; white-space:nowrap;">
+  <span style="width:6px; height:6px; border-radius:50%; background:{{ fg }};"></span>{{ label }}
+</span>
+{% endmacro %}

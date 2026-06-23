@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "_status.html" as status %}
 {% block title %}Patients — Health Interoperability Demo{% endblock %}
 {% block content %}
 
@@ -106,6 +107,7 @@
           <th>GP Diagnosis Code</th>
           <th>Diagnosis</th>
           <th>Referred To</th>
+          <th>Status</th>
           <th>Action</th>
         </tr>
       </thead>
@@ -129,6 +131,7 @@
           <td>
             <span style="font-size:0.82rem; font-weight:500; color:var(--color-primary);">{{ p['referred_to'] }}</span>
           </td>
+          <td>{{ status.status_badge(p['status']) }}</td>
           <td>
             <a href="/patient/{{ p['id'] }}" class="btn btn-primary btn-sm" style="cursor:pointer;">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
